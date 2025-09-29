@@ -1,11 +1,12 @@
 # TP Notes
 
-This repository contains my personal notes for the course **Tecnología de la Programación**, part of the **2nd year of the Mathematics degree at the University of Murcia** (academic year 2025–2026).  
+This repository contains my personal notes for the course **Coding technology** (Tecnología de la programación), part of the **2nd year of the Mathematics degree at the University of Murcia** (academic year 2025–2026).  
 
 It is designed as a structured collection of theory, practice, and my own class notes, so that all the relevant material for the subject is centralized in one place.
 
 ## Repository structure
 
+- **`ip-notes/`** – Notes on the subject "introduction to programming" which is the first course required to take TP. It includes functional programming and shorting algorithms implemented in processing-java.
 - **`lectures/`** – Practical sessions and exercises from the course. Each folder inside corresponds to a different session and contains the worked examples, implementations, and problem-solving strategies.  
 - **`theory/`** – Theoretical content and reference material. This section summarizes the main concepts explained in class and includes additional clarifications where necessary.  
 - **`notes.docs`** – Main document that brings everything together. It contains my in-class notes, summaries of key ideas, and the most important points from exercises and problem sets.
