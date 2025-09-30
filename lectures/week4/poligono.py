@@ -1,5 +1,8 @@
 from enum import Enum
 from linea import Linea
+from punto import Punto
+
+import random
 
 class TipoForma(Enum):
     CONVEXO = 1
@@ -12,11 +15,24 @@ class TipoRelacionLados(Enum):
 
 class Poligono:
 
-    numero_poligonos = 0
+    numero_poligonos:int = 0
+    distancia_maxima_vecinos:float = 10
 
     @classmethod
-    def numero_poligonos_creados(cls):
+    def numero_poligonos_creados(cls) -> float:
         return cls.numero_poligonos
+
+    @classmethod
+    def get_distancia_maxima_vecinos(cls) -> float:
+        return cls.distancia_maxima_vecinos
+
+    @classmethod
+    def set_distancia_maxima_vecinos(cls, distancia) -> bool:
+        if distancia < 0:
+            print("La distancia ha de ser positiva o cero")
+            return False
+        cls.distancia_maxima_vecinos = distancia
+        return True
 
     def __init__(self,
                  numero_lados:int,
@@ -34,6 +50,11 @@ class Poligono:
         self.__contrasenya:str = contrasenya
 
         Poligono.numero_poligonos += 1
+
+        self._poligonos_vecinos:list[Poligono] = list()
+
+        self._vertices : set[Punto] = set()
+        self._vertices = self.get_vertices()
 
     def __str__(self) -> str:
         mensaje:str = f"POLÍGONO CON {self.get_numero_lados()} LADOS. "
@@ -69,6 +90,12 @@ class Poligono:
     def get_relaccion_lados(self) -> TipoRelacionLados:
         return self._relacion_lados
 
+    def get_poligonos_vecinos(self) -> list['Poligono']:
+        return self._poligonos_vecinos
+
+    def get_lados(self) -> list[Linea]:
+        return self._lados
+
     def _set_numero_lados(self, nuevo_numero_lados:int) -> bool:
 # LOS MÉTODOS PARA MODIFICAR ATRIBUTOS SON ÚTILES PARA CONTROLAR LOS ERRORES ANTES DE LA ASIGNACIÓN
          if nuevo_numero_lados < 3:
@@ -95,11 +122,23 @@ class Poligono:
         return True
 
     def set_lados(self, lineas:list[Linea]) -> bool:
+        # RECALCULAMOS LOS VÉRTICES CON LOS NUEVOS LADOS
+        if lineas != self.get_lados():
+            self.set_vertices(self.calcular_vertices())
         if len(lineas) != self.get_numero_lados():
             print("No se han podido establecer las líneas como lados del polígono.")
             return False
         print(f"Lineas establecidas. El polígono tiene {self.get_numero_lados()}")
         self._lados = lineas
+
+        # AGREGAMOS ESTA LÍNEA POR LA CORRESPONDENCIA ENTRE LÍNEAS Y POLÍGONOS PROPUESTA EN SEMANA 4 - PROBLEMA 5
+        for linea in lineas:
+            linea.set_poligono_pertenece(self)
+        return True
+
+    def set_vertices(self, vertices_nuevos:set[Punto]) -> bool:
+        self._vertices = vertices_nuevos
+        print("Vértices actualizados")
         return True
 
     def set_contrasenya(self, contrasenya:str) -> bool:
@@ -126,3 +165,51 @@ class Poligono:
         if ajuste_lados:
             resultado_escalada = self._set_numero_lados(self.get_numero_lados() + ajuste_lados)
         return resultado_escalada
+
+
+    def es_vecino(self, otro_poligono:'Poligono') -> bool:
+        es_vecino:bool = False
+        posicion_lado = 0
+        while not es_vecino and posicion_lado < len(self.get_lados()):
+            punto_actual:Punto = self.get_lados()[posicion_lado].get_punto_inicio()
+            distancia:float = punto_actual.distancia_manhatan_a_poligono(otro_poligono)
+            if distancia < Poligono.get_distancia_maxima_vecinos():
+                es_vecino = True
+            posicion_lado += 1
+        return es_vecino
+
+
+
+    def agregar_vecino(self, otro_poligono:'Poligono') -> bool:
+        if not self.es_vecino(otro_poligono):
+            print(f"No se pudo agregar {otro_poligono} a la lista de vecinos")
+            return False
+
+        # NECESARIO PARA EVITAR LA RECURSIVIDAD
+        if otro_poligono in self.get_poligonos_vecinos():
+            return False
+
+        self._poligonos_vecinos.append(otro_poligono)
+        otro_poligono.agregar_vecino(self)
+        print(f"Se ha añadido {otro_poligono} a la lista de vecinos")
+        return True
+
+    def calcular_vertices(self) -> set[Punto]:
+        vertices:set[Punto] = set()
+        for lado in self.get_lados():
+            punto_inicial, _ = lado.get_puntos()
+            # COMO ES UN CONJUNTO YA REVISA SI ESTÁN REPETIDOS
+            vertices.add(punto_inicial)
+        return vertices
+
+    def get_vertices(self) -> set[Punto]:
+        if not self._vertices: # NO HAY, LOS CALCULO
+            self._vertices = self.calcular_vertices()
+        return self._vertices
+
+
+    def eliminar_lado_aleatorio(self) -> None:
+        lados = self.get_lados()
+        self._set_numero_lados(self.get_numero_lados() - 1)
+        lados.remove(random.randint(0, len(lados)))
+        self.set_lados(lados)
