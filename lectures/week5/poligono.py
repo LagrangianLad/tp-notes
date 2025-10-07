@@ -39,13 +39,14 @@ class Poligono:
                  forma:TipoForma = None,
                  relacion_lados:TipoRelacionLados = None,
                  color:str=None,
-                 contrasenya:str = None):
+                 contrasenya:str = None,
+                 lados:list[Linea] = None):
         self._numero_lados:int = numero_lados
         self._color:str = color
         self._forma:TipoForma = forma
         self._relacion_lados:TipoRelacionLados = relacion_lados
 
-        self._lados:list[Linea] = list()
+        self._lados:list[Linea] = lados
 
         self.__contrasenya:str = contrasenya
 
@@ -122,14 +123,14 @@ class Poligono:
         return True
 
     def set_lados(self, lineas:list[Linea]) -> bool:
-        # RECALCULAMOS LOS VÉRTICES CON LOS NUEVOS LADOS
-        if lineas != self.get_lados():
-            self.set_vertices(self.calcular_vertices())
         if len(lineas) != self.get_numero_lados():
             print("No se han podido establecer las líneas como lados del polígono.")
             return False
         print(f"Lineas establecidas. El polígono tiene {self.get_numero_lados()}")
         self._lados = lineas
+        # RECALCULAMOS LOS VÉRTICES CON LOS NUEVOS LADOS
+        if lineas != self.get_lados():
+            self.set_vertices(self.calcular_vertices())
 
         # AGREGAMOS ESTA LÍNEA POR LA CORRESPONDENCIA ENTRE LÍNEAS Y POLÍGONOS PROPUESTA EN SEMANA 4 - PROBLEMA 5
         for linea in lineas:
@@ -194,12 +195,15 @@ class Poligono:
         return True
 
     def calcular_vertices(self) -> set[Punto]:
-        vertices:set[Punto] = set()
-        for lado in self.get_lados():
-            punto_inicial, _ = lado.get_puntos()
-            # COMO ES UN CONJUNTO YA REVISA SI ESTÁN REPETIDOS
-            vertices.add(punto_inicial)
-        return vertices
+        if self.get_lados():
+            vertices:set[Punto] = set()
+            for lado in self.get_lados():
+                punto_inicial, _ = lado.get_puntos()
+                # COMO ES UN CONJUNTO YA REVISA SI ESTÁN REPETIDOS
+                vertices.add(punto_inicial)
+            return vertices
+        else:
+            return None
 
     def get_vertices(self) -> set[Punto]:
         if not self._vertices: # NO HAY, LOS CALCULO
